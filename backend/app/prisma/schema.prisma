@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Frequency {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+  ANNUAL
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+  payslips Income[]
+  goals    SavingsGoal[]
+}
+
+model Payment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  name       String    @unique
+  start_date DateTime  @db.Date
+  end_date DateTime  @db.Date
+  amount     Int
+  frequency  Frequency
+
+  User User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Income {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String   @db.Uuid
+  name    String   @unique
+  date    DateTime @db.Date
+  amount  Int
+  tax     Int?
+
+  User User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model SavingsGoal {
+  id         Int    @id @default(autoincrement())
+  user_id    String @db.Uuid
+  name       String @unique
+  percentage Float  @db.Real
+  target     Float  @db.Real
+
+  User User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
